@@ -11,9 +11,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Main {
     public static void main(String[] args) {
         SwiftBotAPI api = SwiftBotAPI.INSTANCE;
+        // this is a boolean that is only turned true when the button is pressed and allows the player to continue the game
         AtomicReference<Boolean> gameStarted = new AtomicReference<>(false);
 
+        // start of the game
         System.out.println("Welcome to Snakes and Ladders");
+        // the button has to be pressed in order for the game to start
         api.enableButton(Button.Y, () -> {
             System.out.println("Button Y was pressed! Game starting!");
 
@@ -28,14 +31,19 @@ public class Main {
             }
 
         });
+
+        // this is a boolean that activates when it's the player's turn or the swiftbot.
         AtomicBoolean playerTurn = new AtomicBoolean(true);
 
         while (true) {
+            // sets up the snakes within the board
             snakes();
+            // sets up the ladders within the board
             ladder();
 
             if (!gameStarted.get()) continue;
 
+            //ask for the user name
             Scanner userimput = new Scanner(System.in);
             System.out.println("What is your username?");
 //                api.disableButton(Button.Y);
@@ -43,8 +51,10 @@ public class Main {
 
 
             System.out.println("Welcome " + username + "!");
+            //assigns a name to the swiftbot
             String swiftbotname = "Robot";
 
+            //this is the SnakesAndLaddersboard
             String[][] SnakesAndLaddersGameBoard =
                     {{" 01 ", " 02 ", " 03 ", " 04 ", " 05 "},
                             {" 10 ", " 09 ", " 08 ", " 07 ", " 06 "},
@@ -52,78 +62,113 @@ public class Main {
                             {" 20 ", " 19 ", " 18 ", " 17 ", " 16 "},
                             {" 21 ", " 22 ", " 23 ", " 24 ", " 25 "}};
 
+            // key information:
+            // 1. this is recording the position of the player and the swiftbot
             String recordedspaceeforplayer = SnakesAndLaddersGameBoard[0][0];
+            String recordedspaceeforswift = SnakesAndLaddersGameBoard[0][0];
+            // here is the wheel that rolls to see if the player is able to override the swiftbot's die
             String[] wheeloffortune = {"Override Spin", "Unfortunately not"};
+
+            // here are the recorded start of the game and the ending of the game
             String startofboard = SnakesAndLaddersGameBoard[0][0];
             String theendofboard = SnakesAndLaddersGameBoard[4][4];
-            String recordedspaceeforswift = SnakesAndLaddersGameBoard[0][0];
 
+            // this allows the user to choose what mode they would like to pick. whether a or b
             System.out.println("What Mode would you like to play?");
             String choice = userimput.nextLine();
             String modeselection = choice.toLowerCase();
             int startingpos = 0;
             int newpos = 0;
 
+            // all of this code is within mode a and gives the basic rules and games of snakes and ladders
             if (modeselection.equals("mode a")) {
+                // here is the opeing and the rules for snakes and ladders.
                 System.out.println("You have chosen Mode A. Welcome to Snakes and Ladders");
                 sleep((int) 0.5);
                 System.out.println("Where you have to play a normal game of Snakes and Ladders against " + swiftbotname);
                 sleep((int) 0.5);
                 System.out.println("First Player to get to Block 25 WINS!!!!! Good luck!");
 
+                // here prints out the layout of the board!
                 for (String[] GameBoard : SnakesAndLaddersGameBoard) {
                     for (String SnakesandLeaderboard : GameBoard) {
                         System.out.print("|" + SnakesandLeaderboard + "| ");
                     }
                     System.out.println();
                 }
+                // here are both the die for the swiftbot and the player for the start of the game
                 int playerdie = (int) (Math.random() * 6) + 1;
                 int swiftdie = (int) (Math.random() * 6) + 1;
 
+                // prints out the results of the die rolled for both players
                 System.out.println("This is the player die: " + playerdie);
                 System.out.println("This is the swiftbot die: " + swiftdie);
 
+                // this is what happens when the player's die is higher than the swiftbot
                 if (playerdie > swiftdie) {
                     int move = playerdie;
+                    // this automatically changes the playerTurn so that the game can start after this action has occured
                     playerTurn.set(true);
                     sleep(1);
 
-                } else if (playerdie < swiftdie) {
+                }
+                // this is what happens when the swiftbot's die is higher than the players
+
+                else if (playerdie < swiftdie) {
+                    // this automatically changes the PlayerTurn so that the game can start after this action has occured
                     playerTurn.set(true);
                     System.out.println();
                     sleep(1);
-
-                } else {
+                }
+                // this is what happens when they both roll the same number!
+                else {
                     System.out.println("It's a tie");
                     System.out.println("Roll again!");
                     sleep(1);
                 }
+                // both positions are resset to 0 so that the game can offically start and the die can be rolled
 
                 int playerpostion = 0;
                 int swiftposition = 0;
 
                 while (true) {
+                    // this will run until either one of the players get to the last spot
                     while (playerpostion <= 25 && swiftposition <= 25) {
+                        //
                         if (playerTurn.get()) {
+                            // this will generate a random dice roll for the player
+                            // button to start the die roll
                             playerdie = (int) (Math.random() * 6) + 1;
-
+                            // constantly check if the player position is above 19 as there is a special rule for when the player is
                             if (playerpostion + playerdie >= 19) {
                                 // check for snakes
                                 // check for ladders
+                                // this is a new variable that hold a record of the amount of spaces left for the player to get to 25
                                 int spacesleftP = 25 - playerpostion;
+                                // if the player is above the amount of spaces left,
                                 if (playerdie > spacesleftP) {
+                                    /* the player cannot mobve because the rule is that the player must roll to 25 on the
+                                    dot and not over. so if they are over the smount of spaces left then they will go over the board
+                                    and that isn't what is supposed to happen.
+                                     */
                                     System.out.println("Sorry Player! can't move than 25!  invalid movement!");
                                 } else {
+                                    // if they are not above the spaces left then they are able to move to that spot.
                                     playerpostion += playerdie;
                                 }
                             } else {
+                                /*is the player isn't above 19 then they can ignore the above calculations
+                                and just increase until they get to that calculation.
+                                 */
                                 playerpostion += playerdie;
 
                             }
 
+                            // this prints and shows the username as well as the die roll and the new state position.
                             System.out.println("This is " + username + "s turn ");
                             System.out.println("Here is the playerdie: " + playerdie);
                             System.out.println("Here is the New Space for " + username + ":" + playerpostion);
+                            // button that waits for the user to press when they are done with their turn.
                             Scanner userreply = new Scanner(System.in);
                             System.out.println("Press next when you want to continue");
                             String readingline = userreply.nextLine();
@@ -400,26 +445,6 @@ public class Main {
                         {" 21 ", " 22 ", " 23 ", " 24 ", " 25 "}};
         String recordedspaceeforswift = SnakesAndLaddersGameBoard[0][0];
 
-        int startingpos = 0;
-        if (startingpos + swiftdiew >= 19) {
-            // check for snakes
-            // check for ladders
-            int spacesleftP = 25 - startingpos;
-            if (swiftdiew > spacesleftP) {
-                System.out.println("Sorry Player! can't move than 25!  invalid movement!");
-            } else {
-                startingpos += swiftdiew;
-            }
-        } else {
-            startingpos += swiftdiew;
-
-        }
-        System.out.println("This is Robot's turn ");
-        System.out.println("Here is the playerdie: " + swiftdiew);
-        System.out.println("Here is the New Space for Robot:" + startingpos);
-        Scanner userreply = new Scanner(System.in);
-        System.out.println("Press next when you want to continue");
-        String readingline = userreply.nextLine();
     }
 
     static void makingaleftcorner() {
