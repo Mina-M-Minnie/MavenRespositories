@@ -1,5 +1,6 @@
 package org.example;
 
+import org.opencv.core.Mat;
 import swiftbot.Button;
 import swiftbot.SwiftBotAPI;
 
@@ -173,6 +174,7 @@ public class Main {
                     }
                 }
             }
+
             else if (modeselection.equals("mode b")) {
                 System.out.println("You have chosen Mode B. Welcome to Snakes and Ladders");
                 sleep((int) 0.5);
@@ -217,9 +219,16 @@ public class Main {
                 int swiftposition = 0;
 
                 while (true) {
+                    System.out.println("Hello");
                     while (playerTurn.get()) {
+                        System.out.println("Hello1");
+
                         while (playerpostion <= 25 || swiftposition <= 25) {
+                            System.out.println("Hello2");
+
                             if (playerTurn.get()) {
+                                System.out.println("Hello3");
+
                                 playerdie = (int) (Math.random() * 6) + 1;
 
                                 if (playerpostion + playerdie >= 19) {
@@ -242,17 +251,17 @@ public class Main {
                                 Scanner userreply = new Scanner(System.in);
                                 System.out.println("Press next when you want to continue");
                                 String readingline = userreply.nextLine();
-                                playerTurn.set(true);
-                            }
-                            else {
+                                playerTurn.set(false);
+
+                            } else if (!playerTurn.get()){
                                     int swiftdiew = (int) (Math.random() * 6) + 1;
 
                                     Scanner userreply = new Scanner(System.in);
-
                                     if (swiftposition != 0) {
                                         int wheelnumber = (int) (Math.random() * 101);
                                         System.out.println(wheelnumber);
                                         if (wheelnumber % 2 == 0) {
+
                                             System.out.println(wheeloffortune[0]);
                                             Scanner wheeloffortunescanner = new Scanner(System.in);
                                             System.out.println("how many places would you like to move the swiftbot?");
@@ -308,13 +317,14 @@ public class Main {
                                                     System.out.println("Press next when you want to continue");
                                                     String readingline = userreply.nextLine();
                                                 }
-                                                playerTurn.set(false);
                                             }
+                                            playerTurn.set(true);
                                         } else {
+
                                             System.out.println(wheeloffortune[1]);
 
-                                            System.out.println(swiftposition);
-                                            System.out.println(swiftdiew);
+                                            swiftdiew = (int) (Math.random()*6)+1;
+
                                             if (swiftposition + swiftdiew >= 19) {
                                                 int spacesleftS = 25 - swiftposition;
                                                 if (swiftdiew > spacesleftS) {
@@ -331,7 +341,7 @@ public class Main {
 
                                             System.out.println("Press next when you want to continue");
                                             String readingline = userreply.nextLine();
-                                            playerTurn.set(false);
+                                            playerTurn.set(true);
 
                                             if (playerpostion == 25 && swiftposition != 25) {
                                                 System.out.println("Player wins!");
@@ -341,9 +351,10 @@ public class Main {
                                             }
                                         }
                                     } else {
-                                        while (playerTurn.get()) {
-                                            System.out.println(swiftposition);
-                                            System.out.println(swiftdiew);
+                                        while (!playerTurn.get()) {
+
+                                            swiftdiew=(int)(Math.random()*6)+1;
+
                                             if (swiftposition + swiftdiew >= 19) {
                                                 int spacesleftS = 25 - swiftposition;
                                                 if (swiftdiew > spacesleftS) {
@@ -360,8 +371,8 @@ public class Main {
 
                                             System.out.println("Press next when you want to continue");
                                             String readingline = userreply.nextLine();
-                                            playerTurn.set(false);
                                         }
+                                        playerTurn.set(true);
                                     }
 
                                     if (playerpostion == 25 && swiftposition != 25) {
