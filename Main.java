@@ -86,13 +86,12 @@ public class Main {
 
                 if (playerdie > swiftdie) {
                     int move = playerdie;
-
-                    playerTurn.set(false);
-                    System.out.println();
+                    playerTurn.set(true);
+                    System.out.println("Hello?");
                     sleep(1);
 
                 } else if (playerdie < swiftdie) {
-                    playerTurn.set(true);
+                    playerTurn.set(false);
                     System.out.println();
                     sleep(1);
 
@@ -101,11 +100,12 @@ public class Main {
                     System.out.println("Roll again!");
                     sleep(1);
                 }
+
                 int playerpostion = 0;
                 int swiftposition = 0;
 
                 while (true) {
-                    while (playerTurn.get()) {
+                    while (!playerTurn.get()) {
                         while (playerpostion <= 25 && swiftposition <= 25) {
                             if (playerTurn.get()) {
                                 playerdie = (int) (Math.random() * 6) + 1;
@@ -131,8 +131,9 @@ public class Main {
                                 System.out.println("Press next when you want to continue");
                                 String readingline = userreply.nextLine();
                                 playerTurn.set(false);
+
                             } else {
-                                while (!playerTurn.get()) {
+                                while (playerTurn.get()) {
                                     int swiftdiew = (int) (Math.random() * 6) + 1;
 
                                     if (swiftposition + swiftdiew >= 19) {
