@@ -77,7 +77,6 @@ public class Main {
                     }
                     System.out.println();
                 }
-                // here!
                 int playerdie = (int) (Math.random() * 6) + 1;
                 int swiftdie = (int) (Math.random() * 6) + 1;
 
@@ -87,11 +86,10 @@ public class Main {
                 if (playerdie > swiftdie) {
                     int move = playerdie;
                     playerTurn.set(true);
-                    System.out.println("Hello?");
                     sleep(1);
 
                 } else if (playerdie < swiftdie) {
-                    playerTurn.set(false);
+                    playerTurn.set(true);
                     System.out.println();
                     sleep(1);
 
@@ -105,69 +103,67 @@ public class Main {
                 int swiftposition = 0;
 
                 while (true) {
-                    while (!playerTurn.get()) {
-                        while (playerpostion <= 25 && swiftposition <= 25) {
-                            if (playerTurn.get()) {
-                                playerdie = (int) (Math.random() * 6) + 1;
+                    while (playerpostion <= 25 && swiftposition <= 25) {
+                        if (playerTurn.get()) {
+                            playerdie = (int) (Math.random() * 6) + 1;
 
-                                if (playerpostion + playerdie >= 19) {
-                                    // check for snakes
-                                    // check for ladders
-                                    int spacesleftP = 25 - playerpostion;
-                                    if (playerdie > spacesleftP) {
-                                        System.out.println("Sorry Player! can't move than 25!  invalid movement!");
-                                    } else {
-                                        playerpostion += playerdie;
-                                    }
+                            if (playerpostion + playerdie >= 19) {
+                                // check for snakes
+                                // check for ladders
+                                int spacesleftP = 25 - playerpostion;
+                                if (playerdie > spacesleftP) {
+                                    System.out.println("Sorry Player! can't move than 25!  invalid movement!");
                                 } else {
                                     playerpostion += playerdie;
-
                                 }
-
-                                System.out.println("This is " + username + "s turn ");
-                                System.out.println("Here is the playerdie: " + playerdie);
-                                System.out.println("Here is the New Space for " + username + ":" + playerpostion);
-                                Scanner userreply = new Scanner(System.in);
-                                System.out.println("Press next when you want to continue");
-                                String readingline = userreply.nextLine();
-                                playerTurn.set(false);
-
                             } else {
-                                while (playerTurn.get()) {
-                                    int swiftdiew = (int) (Math.random() * 6) + 1;
+                                playerpostion += playerdie;
 
-                                    if (swiftposition + swiftdiew >= 19) {
-                                        int spacesleftS = 25 - swiftposition;
-                                        if (swiftdiew > spacesleftS) {
-                                            System.out.println("Sorry Swift! can't move than 25!  invalid movement!");
-                                        } else {
-                                            swiftposition += swiftdiew;
-                                        }
+                            }
+
+                            System.out.println("This is " + username + "s turn ");
+                            System.out.println("Here is the playerdie: " + playerdie);
+                            System.out.println("Here is the New Space for " + username + ":" + playerpostion);
+                            Scanner userreply = new Scanner(System.in);
+                            System.out.println("Press next when you want to continue");
+                            String readingline = userreply.nextLine();
+                            playerTurn.set(false);
+
+                        } else {
+                            while (!playerTurn.get()) {
+                                int swiftdiew = (int) (Math.random() * 6) + 1;
+
+                                if (swiftposition + swiftdiew >= 19) {
+                                    int spacesleftS = 25 - swiftposition;
+                                    if (swiftdiew > spacesleftS) {
+                                        System.out.println("Sorry Swift! can't move than 25!  invalid movement!");
                                     } else {
                                         swiftposition += swiftdiew;
                                     }
-                                    System.out.println("This is Swift's turn ");
-                                    System.out.println("Forth");
-                                    System.out.println("Here is the swiftdiew: " + swiftdiew);
-                                    System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
-
-                                    Scanner userreply = new Scanner(System.in);
-                                    System.out.println("Press next when you want to continue");
-                                    String readingline = userreply.nextLine();
-                                    playerTurn.set(true);
-
+                                } else {
+                                    swiftposition += swiftdiew;
                                 }
-                            }
+                                System.out.println("This is Swift's turn ");
+                                System.out.println("Forth");
+                                System.out.println("Here is the swiftdiew: " + swiftdiew);
+                                System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
 
-                            if (playerpostion == 25 && swiftposition != 25) {
-                                System.out.println("Player wins!");
-                                break;
-                            } else if (playerpostion != 25 && swiftposition == 25) {
-                                System.out.println("Swiftbot wins!");
-                                break;
+                                Scanner userreply = new Scanner(System.in);
+                                System.out.println("Press next when you want to continue");
+                                String readingline = userreply.nextLine();
+                                playerTurn.set(true);
+
                             }
+                        }
+
+                        if (playerpostion == 25 && swiftposition != 25) {
+                            System.out.println("Player wins!");
+                            break;
+                        } else if (playerpostion != 25 && swiftposition == 25) {
+                            System.out.println("Swiftbot wins!");
                             break;
                         }
+                        break;
                     }
                 }
             } else if (modeselection.equals("mode b")) {
