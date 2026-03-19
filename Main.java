@@ -30,6 +30,9 @@ public class Main {
         AtomicBoolean playerTurn = new AtomicBoolean(true);
 
         while (true) {
+            snakes();
+            ladder();
+
             if (!gameStarted.get()) continue;
 
             Scanner userimput = new Scanner(System.in);
@@ -87,12 +90,14 @@ public class Main {
                     System.out.println();
                     sleep(1);
 
-                } else if (playerdie < swiftdie) {
+                }
+                else if (playerdie < swiftdie) {
                     playerTurn.set(true);
                     System.out.println();
                     sleep(1);
 
-                } else {
+                }
+                else {
                     System.out.println("It's a tie");
                     System.out.println("Roll again!");
                     sleep(1);
@@ -105,16 +110,16 @@ public class Main {
                         if (!playerTurn.get()) {
                             AtomicBoolean playerturn = new AtomicBoolean(false);
                             AtomicBoolean playerrolldie = new AtomicBoolean(false);
-                            api.disableAllButtons();
 
+                            api.disableAllButtons();
                             api.enableButton(Button.A,()->{
                                 System.out.println(username+"'s, you have rolled "+playerdie);
-                                playerturn.set(true);
-                                playerTurn.set(true);
+                                playerrolldie.set(true);
                             });
 
-                            if (!playerturn.get()) continue;
-                            if (!playerTurn.get()) continue;
+                            if (!playerrolldie.get()) continue;
+                            System.out.println("This is " + username + "'s turn ");
+                            System.out.println("Here is the playerdie: " + playerdie);
 
 
                             if (playerpostion + playerdie >= 19) {
@@ -129,9 +134,6 @@ public class Main {
 
                             }
 
-                            System.out.println("This is " + username + "'s turn ");
-                            System.out.println("Here is the playerdie: " + playerdie);
-                            System.out.println("Here is the New Space for " + username + ": " + playerpostion);
                             sleep(1);
                             userfinish();
 
@@ -171,7 +173,6 @@ public class Main {
                     }
                 }
             }
-
             else if (modeselection.equals("mode b")) {
                 System.out.println("You have chosen Mode B. Welcome to Snakes and Ladders");
                 sleep((int) 0.5);
@@ -182,6 +183,7 @@ public class Main {
                 System.out.println("BUT only 5 positions at a given time. Chose the position wisely~");
                 sleep((int) 0.5);
                 System.out.println("First Player to get to Block 25 WINS!!!!! Good luck!");
+
                 for (String[] GameBoard : SnakesAndLaddersGameBoard) {
                     for (String SnakesandLeaderboard : GameBoard) {
                         System.out.print("|" + SnakesandLeaderboard + "| ");
@@ -197,12 +199,12 @@ public class Main {
 
                 if (playerdie > swiftdie) {
                     int move = playerdie;
-                    playerTurn.set(false);
+                    playerTurn.set(true);
                     System.out.println();
                     sleep(1);
 
                 } else if (playerdie < swiftdie) {
-                    playerTurn.set(true);
+                    playerTurn.set(false);
                     System.out.println();
                     sleep(1);
 
@@ -216,33 +218,33 @@ public class Main {
 
                 while (true) {
                     while (playerTurn.get()) {
-                        while (true) {
-                            while (playerpostion <= 25 || swiftposition <= 25) {
-                                if (!playerTurn.get()) {
+                        while (playerpostion <= 25 || swiftposition <= 25) {
+                            if (playerTurn.get()) {
+                                playerdie = (int) (Math.random() * 6) + 1;
 
-                                    if (playerpostion + playerdie >= 19) {
-                                        // check for snakes
-                                        // check for ladders
-                                        int spacesleftP = 25 - playerpostion;
-                                        if (playerdie > spacesleftP) {
-                                            System.out.println("Sorry Player! can't move than 25!  invalid movement!");
-                                        } else {
-                                            playerpostion += playerdie;
-                                        }
+                                if (playerpostion + playerdie >= 19) {
+                                    // check for snakes
+                                    // check for ladders
+                                    int spacesleftP = 25 - playerpostion;
+                                    if (playerdie > spacesleftP) {
+                                        System.out.println("Sorry Player! can't move than 25!  invalid movement!");
                                     } else {
                                         playerpostion += playerdie;
-
                                     }
-
-                                    System.out.println("This is "+username+"s turn ");
-                                    System.out.println("Here is the playerdie: " + playerdie);
-                                    System.out.println("Here is the New Space for "+ username+":"+ playerpostion);
-                                    Scanner userreply = new Scanner(System.in);
-                                    System.out.println("Press next when you want to continue");
-                                    String readingline = userreply.nextLine();
-                                    playerTurn.set(true);
-
                                 } else {
+                                    playerpostion += playerdie;
+
+                                }
+
+                                System.out.println("This is " + username + "s turn ");
+                                System.out.println("Here is the playerdie: " + playerdie);
+                                System.out.println("Here is the New Space for " + username + ":" + playerpostion);
+                                Scanner userreply = new Scanner(System.in);
+                                System.out.println("Press next when you want to continue");
+                                String readingline = userreply.nextLine();
+                                playerTurn.set(true);
+                            }
+                            else {
                                     int swiftdiew = (int) (Math.random() * 6) + 1;
 
                                     Scanner userreply = new Scanner(System.in);
@@ -372,7 +374,6 @@ public class Main {
                                     break;
                                 }
                             }
-                        }
                     }
                 }
             }
@@ -397,26 +398,28 @@ public class Main {
                         {" 20 ", " 19 ", " 18 ", " 17 ", " 16 "},
                         {" 21 ", " 22 ", " 23 ", " 24 ", " 25 "}};
         String recordedspaceeforswift = SnakesAndLaddersGameBoard[0][0];
-        int startingpos=0;
-        int newpos=0;
-         System.out.println("Here is n: " + swiftdiew);
-            System.out.println("Combination: " + swiftdiew);
-            newpos = (swiftdiew + newpos);
-            while (startingpos != newpos) {
-                api.move(80,100,900);
-                startingpos++;
-                System.out.println("Here is my movement: " + startingpos);
-                if(startingpos==5 && startingpos==newpos){
-                    api.stopMove();
-                }
-                sleep(1);
-                if ((startingpos % 5 == 0) && startingpos % 10 != 0) {
-                        makingaleftcorner();
-                } else if (startingpos % 10 == 0) {
-                    makingarightturn();
-                }
+
+        int startingpos = 0;
+        if (startingpos + swiftdiew >= 19) {
+            // check for snakes
+            // check for ladders
+            int spacesleftP = 25 - startingpos;
+            if (swiftdiew > spacesleftP) {
+                System.out.println("Sorry Player! can't move than 25!  invalid movement!");
+            } else {
+                startingpos += swiftdiew;
             }
-            System.out.println("Current pos: " + newpos);
+        } else {
+            startingpos += swiftdiew;
+
+        }
+
+        System.out.println("This is Robot's turn ");
+        System.out.println("Here is the playerdie: " + swiftdiew);
+        System.out.println("Here is the New Space for Robot:" + startingpos);
+        Scanner userreply = new Scanner(System.in);
+        System.out.println("Press next when you want to continue");
+        String readingline = userreply.nextLine();
     }
     static void makingaleftcorner() {
         String[][] SnakesAndLaddersGameBoard =
@@ -459,16 +462,17 @@ public class Main {
         System.out.println("Moving done");
     }
     static void snakes() {
-         final int num_snakes = 2;
-         int[][] snakes;
-        snakes = new int[num_snakes][2];
+        final int snake = 2;
+        int[][] snakes;
+        snakes = new int[snake][2];
         String[][] SnakesAndLaddersGameBoard =
                 {{" 01 ", " 02 ", " 03 ", " 04 ", " 05 "},
                         {" 10 ", " 09 ", " 08 ", " 07 ", " 06 "},
                         {" 11 ", " 12 ", " 13 ", " 14 ", " 15 "},
                         {" 20 ", " 19 ", " 18 ", " 17 ", " 16 "},
                         {" 21 ", " 22 ", " 23 ", " 24 ", " 25 "}};
-
+        snakes[0][0] = 17;
+        snakes[0][1] = 7;
     }
     static void ladder() {
         String[][] SnakesAndLaddersGameBoard =
@@ -477,9 +481,12 @@ public class Main {
                         {" 11 ", " 12 ", " 13 ", " 14 ", " 15 "},
                         {" 20 ", " 19 ", " 18 ", " 17 ", " 16 "},
                         {" 21 ", " 22 ", " 23 ", " 24 ", " 25 "}};
-        String snakeHead = SnakesAndLaddersGameBoard[0][0];
-        // to new spot
-        String snaketail = SnakesAndLaddersGameBoard[0][5];
+        final int ladder = 2;
+        int[][] ladders;
+        ladders = new int[ladder][2];
+
+        ladders[0][0] = 4;
+        ladders[0][1] = 14;
     }
     static void userfinish(){
         SwiftBotAPI api = SwiftBotAPI.INSTANCE;
