@@ -219,15 +219,9 @@ public class Main {
                 int swiftposition = 0;
 
                 while (true) {
-                    System.out.println("Hello");
-                    while (playerTurn.get()) {
-                        System.out.println("Hello1");
-
+                    while (!playerTurn.get()) {
                         while (playerpostion <= 25 || swiftposition <= 25) {
-                            System.out.println("Hello2");
-
                             if (playerTurn.get()) {
-                                System.out.println("Hello3");
 
                                 playerdie = (int) (Math.random() * 6) + 1;
 
@@ -292,6 +286,7 @@ public class Main {
                                                         newsiftpos = swiftposition + swiftdiew + readingline2;
                                                     }
                                                     System.out.println("This is Swift's turn ");
+                                                    System.out.println("First!");
                                                     System.out.println("Here is the swiftdiew: " + swiftdiew);
                                                     System.out.println("Here is the New Space for the SwiftBot: " + newsiftpos);
 
@@ -311,6 +306,7 @@ public class Main {
                                                         swiftposition -= readingline2;
                                                     }
                                                     System.out.println("This is Swift's turn ");
+                                                    System.out.println("Second!");
                                                     System.out.println("Here is the swiftdiew: " + swiftdiew);
                                                     System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
 
@@ -336,6 +332,7 @@ public class Main {
                                                 swiftposition += swiftdiew;
                                             }
                                             System.out.println("This is Swift's turn ");
+                                            System.out.println("Third");
                                             System.out.println("Here is the swiftdiew: " + swiftdiew);
                                             System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
 
@@ -366,13 +363,15 @@ public class Main {
                                                 swiftposition += swiftdiew;
                                             }
                                             System.out.println("This is Swift's turn ");
+                                            System.out.println("Forth");
                                             System.out.println("Here is the swiftdiew: " + swiftdiew);
                                             System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
 
                                             System.out.println("Press next when you want to continue");
                                             String readingline = userreply.nextLine();
+                                            playerTurn.set(false);
+
                                         }
-                                        playerTurn.set(true);
                                     }
 
                                     if (playerpostion == 25 && swiftposition != 25) {
@@ -424,7 +423,6 @@ public class Main {
             startingpos += swiftdiew;
 
         }
-
         System.out.println("This is Robot's turn ");
         System.out.println("Here is the playerdie: " + swiftdiew);
         System.out.println("Here is the New Space for Robot:" + startingpos);
