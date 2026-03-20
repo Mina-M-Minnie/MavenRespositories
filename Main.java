@@ -26,9 +26,11 @@ public class Main {
             {8, 19}
     };
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  writeLog -- records date, time and positions to a text file
-    // ════════════════════════════════════════════════════════════════════════
+    // ── Scoreboard: max 2 points each (square 5 = 1pt, square 25 = 1pt) ─────
+    static int playerScore = 0;
+    static int botScore    = 0;
+
+
     static void writeLog(String reason, String playerName, int playerPos,
                          String botName, int botPos) {
         String date     = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
@@ -51,9 +53,7 @@ public class Main {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  flashSnake -- flashes red 3 times when a snake is landed on
-    // ════════════════════════════════════════════════════════════════════════
+
     static void flashSnake() {
         SwiftBotAPI api = SwiftBotAPI.INSTANCE;
         int[] red = {255, 0, 0};
@@ -65,9 +65,6 @@ public class Main {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  flashLadder -- flashes yellow 3 times when a ladder is landed on
-    // ════════════════════════════════════════════════════════════════════════
     static void flashLadder() {
         SwiftBotAPI api = SwiftBotAPI.INSTANCE;
         int[] yellow = {255, 200, 0};
@@ -93,11 +90,72 @@ public class Main {
     }
 
     static void printScore(String playerName, int playerPos, String botName, int botPos) {
-        System.out.println("\n+-----------------------+");
-        System.out.println("|  SCOREBOARD           |");
-        System.out.printf ("|  %-10s  sq: %2d   |%n", playerName, playerPos);
-        System.out.printf ("|  %-10s  sq: %2d   |%n", botName,    botPos);
-        System.out.println("+-----------------------+\n");
+        System.out.println("\n+--------------------------------+");
+        System.out.println("|  SCOREBOARD  (max 2 pts each)  |");
+        System.out.println("+--------------------------------+");
+        System.out.printf ("|  %-10s  sq:%-3d  pts: %d   |%n", playerName, playerPos, playerScore);
+        System.out.printf ("|  %-10s  sq:%-3d  pts: %d   |%n", botName,    botPos,    botScore);
+        System.out.println("+--------------------------------+\n");
+    }
+
+
+    static boolean checkSquareFive(SwiftBotAPI api, String whoLanded,
+                                   String playerName, int playerPos,
+                                   String botName,   int botPos,
+                                   boolean isPlayer) {
+        // Award point
+        if (isPlayer) {
+            if (playerScore < 2) playerScore++;
+        } else {
+            if (botScore < 2) botScore++;
+        }
+
+        // Log immediately
+        writeLog("Checkpoint -- square 5 reached by " + whoLanded,
+                playerName, playerPos, botName, botPos);
+        sleep(0.5);
+
+        printSection("CHECKPOINT -- SQUARE 5");
+        sleep(0.5);
+        System.out.println("  " + whoLanded + " has landed on square 5!");
+        sleep(0.5);
+        System.out.println("  " + whoLanded + " earns 1 point!");
+        sleep(1);
+
+        // Print updated scoreboard
+        printScore(playerName, playerPos, botName, botPos);
+        sleep(1);
+
+        System.out.println("  Press [A] to keep playing.");
+        System.out.println("  Press [B] to quit the game right now.");
+        sleep(1);
+
+        AtomicBoolean keepPlaying = new AtomicBoolean(false);
+        AtomicBoolean quitting    = new AtomicBoolean(false);
+
+        api.disableAllButtons();
+        api.enableButton(Button.A, () -> keepPlaying.set(true));
+        api.enableButton(Button.B, () -> quitting.set(true));
+
+        // Block here -- nothing moves until player decides
+        while (!keepPlaying.get() && !quitting.get()) { /* wait */ }
+        api.disableAllButtons();
+
+        if (quitting.get()) {
+            printSection("GAME ENDED AT SQUARE 5");
+            sleep(0.5);
+            System.out.println("  Thanks for playing, " + playerName + "!");
+            System.out.println("  Date : " + LocalDate.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy.MM.dd")));
+            System.out.println("  Time : " + LocalTime.now()
+                    .format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+            sleep(1);
+            System.exit(0);
+        }
+
+        System.out.println("  Continuing the game!\n");
+        sleep(1);
+        return true;
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -109,7 +167,6 @@ public class Main {
         System.out.println("  Welcome! Press button [Y] on the SwiftBot to begin.");
         sleep(1);
 
-        // ── Game start button (original lines 34-44 pattern kept intact) ────
         api.enableButton(Button.Y, () -> {
             System.out.println("\n  [Y] pressed -- Starting the game!");
             gameStarted.set(true);
@@ -127,7 +184,10 @@ public class Main {
         while (true) {
             if (!gameStarted.get()) continue;
 
-            // ── Player name ──────────────────────────────────────────────────
+            // Reset scores at start of each game
+            playerScore = 0;
+            botScore    = 0;
+
             Scanner userimput = new Scanner(System.in);
             printSection("PLAYER REGISTRATION");
             sleep(1);
@@ -148,7 +208,6 @@ public class Main {
 
             String[] wheeloffortune = {"Override Spin", "Unfortunately not"};
 
-            // ── Board setup display ──────────────────────────────────────────
             printSection("BOARD SETUP");
             sleep(1);
             System.out.println("  Snakes (watch out!):");
@@ -164,7 +223,6 @@ public class Main {
             sleep(1);
             System.out.println();
 
-            // ── Mode select ──────────────────────────────────────────────────
             printSection("MODE SELECTION");
             sleep(1);
             System.out.println("  [Mode A] Normal Snakes and Ladders");
@@ -198,7 +256,6 @@ public class Main {
                 System.out.println();
                 sleep(1);
 
-                // ── Who goes first? ──────────────────────────────────────────
                 printSection("ROLLING FOR FIRST TURN");
                 sleep(1);
                 int playerdie = (int) (Math.random() * 6) + 1;
@@ -232,7 +289,6 @@ public class Main {
                     sleep(1);
 
                     if (playerTurn.get()) {
-                        // ── PLAYER'S TURN ────────────────────────────────
                         printSection(username.toUpperCase() + "'S TURN");
                         sleep(1);
 
@@ -240,7 +296,7 @@ public class Main {
                         System.out.println("  Press [A] on the SwiftBot to roll the die...");
                         AtomicBoolean dieRolled = new AtomicBoolean(false);
                         api.enableButton(Button.A, () -> dieRolled.set(true));
-                        while (!dieRolled.get()) { /* wait for button press */ }
+                        while (!dieRolled.get()) { /* wait */ }
                         api.disableAllButtons();
 
                         playerdie = (int) (Math.random() * 6) + 1;
@@ -249,47 +305,20 @@ public class Main {
                         sleep(1);
 
                         int oldPlayerPos = playerpostion;
-                        playerpostion = applyMove(playerpostion, playerdie);
-                        playerpostion = applySnakesAndLadders(playerpostion, username);
-                        sleep(1);
+                        playerpostion    = applyMove(playerpostion, playerdie);
 
                         System.out.println("  " + username + " moves: sq " + oldPlayerPos + " --> sq " + playerpostion);
                         sleep(1);
 
-                        // ── Check square 5 BEFORE asking player to move piece ──
-                        // This gives the player a chance to quit first
                         if (playerpostion == 5) {
-                            writeLog("Checkpoint -- square 5 reached by " + username,
-                                    username, playerpostion, swiftbotname, swiftposition);
-                            sleep(0.5);
-                            printSection("CHECKPOINT -- SQUARE 5");
-                            sleep(1);
-                            System.out.println("  " + username + " landed on square 5!");
-                            sleep(0.5);
-                            System.out.println("  Press [B] to quit the game.");
-                            System.out.println("  Press [A] to keep playing...");
-                            sleep(1);
-
-                            AtomicBoolean keepPlaying = new AtomicBoolean(false);
-                            AtomicBoolean quitting    = new AtomicBoolean(false);
-
-                            api.disableAllButtons();
-                            api.enableButton(Button.A, () -> keepPlaying.set(true));
-                            api.enableButton(Button.B, () -> quitting.set(true));
-
-                            // Wait here until player decides
-                            while (!keepPlaying.get() && !quitting.get()) { /* wait */ }
-                            api.disableAllButtons();
-
-                            if (quitting.get()) {
-                                printSection("GAME ENDED BY PLAYER");
-                                System.out.println("  Thanks for playing, " + username + "!");
-                                sleep(1);
-                                System.exit(0);
-                            }
-                            System.out.println("  Continuing the game!\n");
-                            sleep(1);
+                            checkSquareFive(api, username,
+                                    username, playerpostion,
+                                    swiftbotname, swiftposition, true);
                         }
+
+                        // Now check snakes/ladders (lights flash here if applicable)
+                        playerpostion = applySnakesAndLadders(playerpostion, username);
+                        sleep(1);
 
                         // ── Underlights on while player moves piece ───────
                         System.out.println("\n  Move your piece to square " + playerpostion + ".");
@@ -302,7 +331,7 @@ public class Main {
 
                         AtomicBoolean turnDone = new AtomicBoolean(false);
                         api.enableButton(Button.A, () -> turnDone.set(true));
-                        while (!turnDone.get()) { /* wait for player to move piece */ }
+                        while (!turnDone.get()) { /* wait */ }
 
                         api.disableUnderlights();
                         api.disableAllButtons();
@@ -313,7 +342,6 @@ public class Main {
                         playerTurn.set(false);
 
                     } else {
-                        // ── SWIFTBOT'S TURN ──────────────────────────────
                         printSection(swiftbotname.toUpperCase() + "'S TURN");
                         sleep(1);
 
@@ -322,78 +350,59 @@ public class Main {
                         sleep(1);
 
                         int oldSwiftPos = swiftposition;
-                        swiftposition = applyMove(swiftposition, swiftdiew);
-                        swiftposition = applySnakesAndLadders(swiftposition, swiftbotname);
-                        sleep(1);
+                        swiftposition   = applyMove(swiftposition, swiftdiew);
 
                         System.out.println("  " + swiftbotname + " moves: sq " + oldSwiftPos + " --> sq " + swiftposition);
                         sleep(1);
 
+                        if (swiftposition == 5) {
+                            checkSquareFive(api, swiftbotname,
+                                    username, playerpostion,
+                                    swiftbotname, swiftposition, false);
+                        }
+
+                        // Now check snakes/ladders
+                        swiftposition = applySnakesAndLadders(swiftposition, swiftbotname);
+                        sleep(1);
+
+                        // Now physically move the robot
                         startpos = moveRobotToSquare(api, startpos, swiftposition);
                         sleep(2);
-
-                        // ── Check square 5 for SwiftBot ───────────────────
-                        if (swiftposition == 5) {
-                            writeLog("Checkpoint -- square 5 reached by " + swiftbotname,
-                                    username, playerpostion, swiftbotname, swiftposition);
-                            sleep(0.5);
-                            printSection("CHECKPOINT -- SQUARE 5");
-                            sleep(1);
-                            System.out.println("  " + swiftbotname + " landed on square 5!");
-                            sleep(0.5);
-                            System.out.println("  Press [B] to quit the game.");
-                            System.out.println("  Press [A] to keep playing...");
-                            sleep(1);
-
-                            AtomicBoolean keepPlaying = new AtomicBoolean(false);
-                            AtomicBoolean quitting    = new AtomicBoolean(false);
-
-                            api.disableAllButtons();
-                            api.enableButton(Button.A, () -> keepPlaying.set(true));
-                            api.enableButton(Button.B, () -> quitting.set(true));
-
-                            while (!keepPlaying.get() && !quitting.get()) { /* wait */ }
-                            api.disableAllButtons();
-
-                            if (quitting.get()) {
-                                printSection("GAME ENDED BY PLAYER");
-                                System.out.println("  Thanks for playing, " + username + "!");
-                                sleep(1);
-                                System.exit(0);
-                            }
-                            System.out.println("  Continuing the game!\n");
-                            sleep(1);
-                        }
 
                         playerTurn.set(true);
                     }
 
-                    // ── Win check with log ────────────────────────────────
                     if (playerpostion == 25) {
+                        if (playerScore < 2) playerScore++;
                         writeLog(username + " won the game!",
                                 username, playerpostion, swiftbotname, swiftposition);
                         sleep(0.5);
                         printBanner("*** " + username.toUpperCase() + " WINS! ***");
                         sleep(1);
                         System.out.println("  Congratulations " + username + "! You reached square 25!");
+                        sleep(0.5);
+                        System.out.println("  Final score -- " + username + ": " + playerScore
+                                + " pts  |  " + swiftbotname + ": " + botScore + " pts");
                         sleep(2);
                         break gameLoop;
                     }
                     if (swiftposition == 25) {
+                        if (botScore < 2) botScore++;
                         writeLog(swiftbotname + " won the game!",
                                 username, playerpostion, swiftbotname, swiftposition);
                         sleep(0.5);
                         printBanner("*** " + swiftbotname.toUpperCase() + " WINS! ***");
                         sleep(1);
                         System.out.println("  Better luck next time, " + username + "!");
+                        sleep(0.5);
+                        System.out.println("  Final score -- " + username + ": " + playerScore
+                                + " pts  |  " + swiftbotname + ": " + botScore + " pts");
                         sleep(2);
                         break gameLoop;
                     }
                 }
 
-                // ════════════════════════════════════════════════════════════════
-                //  MODE B
-                // ════════════════════════════════════════════════════════════════
+            //  MODE B
             } else if (modeselection.equals("mode b")) {
 
                 printBanner("MODE B -- OVERRIDE MODE");
@@ -418,7 +427,6 @@ public class Main {
                 System.out.println();
                 sleep(1);
 
-                // ── Who goes first? ──────────────────────────────────────────
                 printSection("ROLLING FOR FIRST TURN");
                 sleep(1);
                 int playerdie = (int) (Math.random() * 6) + 1;
@@ -469,47 +477,20 @@ public class Main {
                         sleep(1);
 
                         int oldPlayerPos = playerpostion;
-                        playerpostion = applyMove(playerpostion, playerdie);
-                        playerpostion = applySnakesAndLadders(playerpostion, username);
-                        sleep(1);
+                        playerpostion    = applyMove(playerpostion, playerdie);
 
                         System.out.println("  " + username + " moves: sq " + oldPlayerPos + " --> sq " + playerpostion);
                         sleep(1);
 
-                        // ── Check square 5 BEFORE asking player to move ───
                         if (playerpostion == 5) {
-                            writeLog("Checkpoint -- square 5 reached by " + username,
-                                    username, playerpostion, swiftbotname, swiftposition);
-                            sleep(0.5);
-                            printSection("CHECKPOINT -- SQUARE 5");
-                            sleep(1);
-                            System.out.println("  " + username + " landed on square 5!");
-                            sleep(0.5);
-                            System.out.println("  Press [B] to quit the game.");
-                            System.out.println("  Press [A] to keep playing...");
-                            sleep(1);
-
-                            AtomicBoolean keepPlaying = new AtomicBoolean(false);
-                            AtomicBoolean quitting    = new AtomicBoolean(false);
-
-                            api.disableAllButtons();
-                            api.enableButton(Button.A, () -> keepPlaying.set(true));
-                            api.enableButton(Button.B, () -> quitting.set(true));
-
-                            while (!keepPlaying.get() && !quitting.get()) { /* wait */ }
-                            api.disableAllButtons();
-
-                            if (quitting.get()) {
-                                printSection("GAME ENDED BY PLAYER");
-                                System.out.println("  Thanks for playing, " + username + "!");
-                                sleep(1);
-                                System.exit(0);
-                            }
-                            System.out.println("  Continuing the game!\n");
-                            sleep(1);
+                            checkSquareFive(api, username,
+                                    username, playerpostion,
+                                    swiftbotname, swiftposition, true);
                         }
 
-                        // ── Underlights on while player moves piece ───────
+                        playerpostion = applySnakesAndLadders(playerpostion, username);
+                        sleep(1);
+
                         System.out.println("\n  Move your piece to square " + playerpostion + ".");
                         sleep(0.5);
                         System.out.println("  Lights are on -- press [A] again once you have moved.");
@@ -531,7 +512,6 @@ public class Main {
                         playerTurn.set(false);
 
                     } else {
-                        // ── SWIFTBOT'S TURN (with possible override) ──────
                         printSection(swiftbotname.toUpperCase() + "'S TURN");
                         sleep(1);
 
@@ -574,8 +554,6 @@ public class Main {
                                     System.out.println("  Invalid direction -- Robot rolls its own die.");
                                     swiftposition = applyMove(swiftposition, swiftdiew);
                                 }
-                                swiftposition = applySnakesAndLadders(swiftposition, swiftbotname);
-                                sleep(1);
                                 System.out.println("  " + swiftbotname + " moves: sq " + oldSwiftPos + " --> sq " + swiftposition);
                                 sleep(1);
 
@@ -583,79 +561,58 @@ public class Main {
                                 System.out.println("  " + wheeloffortune[1] + " -- Robot rolls normally.");
                                 sleep(1);
                                 int oldSwiftPos = swiftposition;
-                                swiftposition = applyMove(swiftposition, swiftdiew);
-                                swiftposition = applySnakesAndLadders(swiftposition, swiftbotname);
-                                sleep(1);
+                                swiftposition   = applyMove(swiftposition, swiftdiew);
                                 System.out.println("  " + swiftbotname + " moves: sq " + oldSwiftPos + " --> sq " + swiftposition);
                                 sleep(1);
                             }
 
                         } else {
                             int oldSwiftPos = swiftposition;
-                            swiftposition = applyMove(swiftposition, swiftdiew);
-                            swiftposition = applySnakesAndLadders(swiftposition, swiftbotname);
-                            sleep(1);
+                            swiftposition   = applyMove(swiftposition, swiftdiew);
                             System.out.println("  " + swiftbotname + " moves: sq " + oldSwiftPos + " --> sq " + swiftposition);
                             sleep(1);
                         }
 
+                        if (swiftposition == 5) {
+                            checkSquareFive(api, swiftbotname,
+                                    username, playerpostion,
+                                    swiftbotname, swiftposition, false);
+                        }
+
+                        swiftposition = applySnakesAndLadders(swiftposition, swiftbotname);
+                        sleep(1);
+
                         startpos = moveRobotToSquare(api, startpos, swiftposition);
                         sleep(2);
-
-                        // ── Check square 5 for SwiftBot ───────────────────
-                        if (swiftposition == 5) {
-                            writeLog("Checkpoint -- square 5 reached by " + swiftbotname,
-                                    username, playerpostion, swiftbotname, swiftposition);
-                            sleep(0.5);
-                            printSection("CHECKPOINT -- SQUARE 5");
-                            sleep(1);
-                            System.out.println("  " + swiftbotname + " landed on square 5!");
-                            sleep(0.5);
-                            System.out.println("  Press [B] to quit the game.");
-                            System.out.println("  Press [A] to keep playing...");
-                            sleep(1);
-
-                            AtomicBoolean keepPlaying = new AtomicBoolean(false);
-                            AtomicBoolean quitting    = new AtomicBoolean(false);
-
-                            api.disableAllButtons();
-                            api.enableButton(Button.A, () -> keepPlaying.set(true));
-                            api.enableButton(Button.B, () -> quitting.set(true));
-
-                            while (!keepPlaying.get() && !quitting.get()) { /* wait */ }
-                            api.disableAllButtons();
-
-                            if (quitting.get()) {
-                                printSection("GAME ENDED BY PLAYER");
-                                System.out.println("  Thanks for playing, " + username + "!");
-                                sleep(1);
-                                System.exit(0);
-                            }
-                            System.out.println("  Continuing the game!\n");
-                            sleep(1);
-                        }
 
                         playerTurn.set(true);
                     }
 
-                    // ── Win check with log ────────────────────────────────
                     if (playerpostion == 25) {
+                        if (playerScore < 2) playerScore++;
                         writeLog(username + " won the game!",
                                 username, playerpostion, swiftbotname, swiftposition);
                         sleep(0.5);
                         printBanner("*** " + username.toUpperCase() + " WINS! ***");
                         sleep(1);
                         System.out.println("  Congratulations " + username + "! You reached square 25!");
+                        sleep(0.5);
+                        System.out.println("  Final score -- " + username + ": " + playerScore
+                                + " pts  |  " + swiftbotname + ": " + botScore + " pts");
                         sleep(2);
                         break gameLoopB;
                     }
                     if (swiftposition == 25) {
+                        if (botScore < 2) botScore++;
                         writeLog(swiftbotname + " won the game!",
                                 username, playerpostion, swiftbotname, swiftposition);
                         sleep(0.5);
                         printBanner("*** " + swiftbotname.toUpperCase() + " WINS! ***");
                         sleep(1);
                         System.out.println("  Better luck next time, " + username + "!");
+                        sleep(0.5);
+                        System.out.println("  Final score -- " + username + ": " + playerScore
+                                + " pts  |  " + swiftbotname + ": " + botScore + " pts");
                         sleep(2);
                         break gameLoopB;
                     }
@@ -679,7 +636,6 @@ public class Main {
     static int applySnakesAndLadders(int position, String playerName) {
         for (int[] snake : snakeData) {
             if (snake[0] == position) {
-                // Flash red for snake
                 flashSnake();
                 System.out.println("  >_< SNAKE! " + playerName + " lands on sq " + snake[0]
                         + " and slides down to sq " + snake[1] + "!");
@@ -689,7 +645,6 @@ public class Main {
         }
         for (int[] ladder : ladderData) {
             if (ladder[0] == position) {
-                // Flash yellow for ladder
                 flashLadder();
                 System.out.println("  /\\ LADDER! " + playerName + " lands on sq " + ladder[0]
                         + " and climbs up to sq " + ladder[1] + "!");
@@ -736,7 +691,7 @@ public class Main {
     static boolean isEvenRowEnd(int square) {
         return square == 5 || square == 15;
     }
-
+    
     static double sleep(double n) {
         try {
             n *= 1000;
@@ -747,16 +702,15 @@ public class Main {
         }
     }
 
-
     static int makingaleftcorner(int pos) {
         SwiftBotAPI api = SwiftBotAPI.INSTANCE;
         System.out.println("  [Robot] Turning left (row transition)");
         sleep(0.5);
-        api.move(0, 100, 725);   // turn
+        api.move(0, 100, 725);
         sleep(1);
-        api.move(80, 100, 465);  // forward one square width
+        api.move(80, 100, 465);
         sleep(1);
-        api.move(0, 100, 900);   // INCREASED from 655 to 900 for full 90 degree turn
+        api.move(0, 100, 850);   
         sleep(1);
         System.out.println("  [Robot] Left turn complete");
         sleep(0.5);
@@ -767,11 +721,11 @@ public class Main {
         SwiftBotAPI api = SwiftBotAPI.INSTANCE;
         System.out.println("  [Robot] Turning right (row transition)");
         sleep(0.5);
-        api.move(90, 0, 725);    // turn
+        api.move(90, 0, 725);
         sleep(1);
-        api.move(80, 100, 495);  // forward one square width
+        api.move(80, 100, 495);
         sleep(1);
-        api.move(90, 0, 900);    // INCREASED from 725 to 900 for full 90 degree turn
+        api.move(90, 0, 850);    
         sleep(1);
         System.out.println("  [Robot] Right turn complete");
         sleep(0.5);
