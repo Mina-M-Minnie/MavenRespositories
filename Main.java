@@ -3,12 +3,14 @@ package org.example;
 import swiftbot.Button;
 import swiftbot.SwiftBotAPI;
 
+import java.time.LocalDate;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
-    public static void main(String[] args) {
+
+    public static boolean main(String[] args) {
         SwiftBotAPI api = SwiftBotAPI.INSTANCE;
         // this is a boolean that is only turned true when the button is pressed and allows the player to continue the game
         AtomicReference<Boolean> gameStarted = new AtomicReference<>(false);
@@ -36,10 +38,8 @@ public class Main {
         AtomicBoolean playerTurn = new AtomicBoolean(true);
 
         while (true) {
-            // sets up the snakes within the board
-            snakes();
-            // sets up the ladders within the board
-            ladder();
+            int snakestart = 2;
+            int ladderstart = 2;
 
             if (!gameStarted.get()) continue;
 
@@ -77,6 +77,7 @@ public class Main {
             System.out.println("What Mode would you like to play?");
             String choice = userimput.nextLine();
             String modeselection = choice.toLowerCase();
+
             int startingpos = 0;
             int newpos = 0;
 
@@ -96,6 +97,10 @@ public class Main {
                     }
                     System.out.println();
                 }
+                // sets up the snakes within the board
+                snakes(startingpos);
+                // sets up the ladders within the board
+               // ladder();
                 // here are both the die for the swiftbot and the player for the start of the game
                 int playerdie = (int) (Math.random() * 6) + 1;
                 int swiftdie = (int) (Math.random() * 6) + 1;
@@ -208,7 +213,6 @@ public class Main {
 
 
                                 System.out.println("This is Swift's turn ");
-                                System.out.println("Forth");
                                 System.out.println("Here is the swiftdiew: " + swiftdiew);
                                 System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
 
@@ -222,7 +226,18 @@ public class Main {
                                         if (startpos == 5) {
                                             System.out.println("You have one 1 point");
                                             api.stopMove();
-                                        }else if ((startpos % 5 == 0) && startpos % 10 != 0) {
+                                            System.out.println("Do you want to quit?");
+                                            String quest=userimput.nextLine();
+                                            AtomicBoolean quitornah= new AtomicBoolean(false);
+                                            api.enableButton(Button.B,()->{
+                                                quitornah.set(true);
+                                                System.out.println("Yes? Okay, well see you next time!");
+                                                LocalDate recordedspace = LocalDate.now();
+                                                System.out.println(recordedspace);
+                                            });
+                                                System.exit(0);
+                                        }
+                                    else if ((startpos % 5 == 0) && startpos % 10 != 0) {
                                             makingaleftcorner();
                                         } else if (startpos % 10 == 0) {
                                             makingarightturn();
@@ -247,7 +262,8 @@ public class Main {
                         break;
                     }
                 }
-            } else if (modeselection.equals("mode b")) {
+            }
+            else if (modeselection.equals("mode b")) {
                 System.out.println("You have chosen Mode B. Welcome to Snakes and Ladders");
                 sleep((int) 0.5);
                 System.out.println("Where you have to play a normal game of Snakes and Ladders against " + swiftbotname);
@@ -358,7 +374,6 @@ public class Main {
                                                     newsiftpos = swiftposition + readingline2;
                                                 }
                                                 System.out.println("This is Swift's turn ");
-                                                System.out.println("First!");
                                                 System.out.println("Here is the swiftdiew: " + swiftdiew);
                                                 System.out.println("Here is the New Space for the SwiftBot: " + newsiftpos);
 
@@ -379,7 +394,6 @@ public class Main {
                                                     swiftposition -= readingline2;
                                                 }
                                                 System.out.println("This is Swift's turn ");
-                                                System.out.println("Second!");
                                                 System.out.println("Here is the swiftdiew: " + swiftdiew);
                                                 System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
                                                 while (true) {
@@ -424,7 +438,6 @@ public class Main {
                                             swiftposition += swiftdiew;
                                         }
                                         System.out.println("This is Swift's turn ");
-                                        System.out.println("Third");
                                         System.out.println("Here is the swiftdiew: " + swiftdiew);
                                         System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
 
@@ -443,6 +456,25 @@ public class Main {
                                     while (!playerTurn.get()) {
 
                                         swiftdiew = (int) (Math.random() * 6) + 1;
+                                        int snakes[][] = new int[0][];
+
+                                        for (int index = 0; index < snakestart; index++){
+                                            if (snakes[index][0] == swiftposition){
+                                                swiftposition = snakes[index][1];
+                                                System.out.println("Uh oh. " + swiftbotname + " takes snake from " + snakes[index][0] + " to " + snakes[index][1]);
+                                                return false;
+                                            }
+                                        }
+
+                                        int ladders[][] = new int[0][];
+
+                                        for (int index = 0; index < ladderstart; index++){
+                                            if (ladders[index][0] == swiftposition){
+                                                swiftposition = ladders[index][1];
+                                                System.out.println("Yay! " + swiftbotname + " takes ladder from " + ladders[index][0] + " to " + ladders[index][1]);
+                                                return false;
+                                            }
+                                        }
 
                                         if (swiftposition + swiftdiew >= 19) {
                                             int spacesleftS = 25 - swiftposition;
@@ -455,7 +487,6 @@ public class Main {
                                             swiftposition += swiftdiew;
                                         }
                                         System.out.println("This is Swift's turn ");
-                                        System.out.println("Forth");
                                         System.out.println("Here is the swiftdiew: " + swiftdiew);
                                         System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
 
@@ -482,12 +513,14 @@ public class Main {
         }
     }
 
+
     static double sleep(double n) {
         try {
             n *= 1000;
             Thread.sleep((long) n);
             return n;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -531,32 +564,42 @@ public class Main {
         sleep(1);
         System.out.println("Moving done");
     }
-    static void snakes() {
-        final int snake = 2;
+    static void snakes(int startingpos) {
+
+        int snake = 2;
         int[][] snakes;
         snakes = new int[snake][2];
+
         String[][] SnakesAndLaddersGameBoard =
-                {{" 01 ", " 02 ", " 03 ", " 04 ", " 05 "},
+                {       {" 01 ", " 02 ", " 03 ", " 04 ", " 05 "},
                         {" 10 ", " 09 ", " 08 ", " 07 ", " 06 "},
                         {" 11 ", " 12 ", " 13 ", " 14 ", " 15 "},
                         {" 20 ", " 19 ", " 18 ", " 17 ", " 16 "},
                         {" 21 ", " 22 ", " 23 ", " 24 ", " 25 "}};
         snakes[0][0] = 17;
         snakes[0][1] = 7;
+
+        snakes[1][0] = 12;
+        snakes[1][1] = 04;
     }
-    static int ladder() {
+    static void ladder() {
+        int ladder = 2;
+        int[][] ladders;
+        ladders = new int[ladder][2];
         String[][] SnakesAndLaddersGameBoard =
-                {{" 01 ", " 02 ", " 03 ", " 04 ", " 05 "},
+                {       {" 01 ", " 02 ", " 03 ", " 04 ", " 05 "},
                         {" 10 ", " 09 ", " 08 ", " 07 ", " 06 "},
                         {" 11 ", " 12 ", " 13 ", " 14 ", " 15 "},
                         {" 20 ", " 19 ", " 18 ", " 17 ", " 16 "},
                         {" 21 ", " 22 ", " 23 ", " 24 ", " 25 "}};
-        final int ladder = 2;
-        int[][] ladders;
-        ladders = new int[ladder][2];
+        String snakepos1 = SnakesAndLaddersGameBoard[0][3]; // to 9
 
-        ladders[0][0] = 4;
-        ladders[0][1] = 14;
+        ladders[0][0] = 17;
+        ladders[0][1] = 7;
+
+        ladders[1][0] = 12;
+        ladders[1][1] = 4;
+
     }
     static void userfinish() {
         SwiftBotAPI api = SwiftBotAPI.INSTANCE;
