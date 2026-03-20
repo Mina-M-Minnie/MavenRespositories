@@ -1,6 +1,5 @@
 package org.example;
 
-import org.opencv.core.Mat;
 import swiftbot.Button;
 import swiftbot.SwiftBotAPI;
 
@@ -17,6 +16,7 @@ public class Main {
         // start of the game
         System.out.println("Welcome to Snakes and Ladders");
         // the button has to be pressed in order for the game to start
+
         api.enableButton(Button.Y, () -> {
             System.out.println("Button Y was pressed! Game starting!");
 
@@ -126,10 +126,13 @@ public class Main {
                     System.out.println("Roll again!");
                     sleep(1);
                 }
+
                 // both positions are resset to 0 so that the game can offically start and the die can be rolled
 
                 int playerpostion = 0;
                 int swiftposition = 0;
+                int startpos=0;
+
 
                 while (true) {
                     // this will run until either one of the players get to the last spot
@@ -169,38 +172,71 @@ public class Main {
                             System.out.println("Here is the playerdie: " + playerdie);
                             System.out.println("Here is the New Space for " + username + ":" + playerpostion);
                             // button that waits for the user to press when they are done with their turn.
-                            Scanner userreply = new Scanner(System.in);
-                            System.out.println("Press next when you want to continue");
-                            String readingline = userreply.nextLine();
-                            playerTurn.set(false);
+
+                            api.disableAllButtons();
+                            AtomicBoolean firstattempt= new AtomicBoolean(false);
+                            AtomicBoolean secondattemp= new AtomicBoolean(false);
+
+                            api.enableButton(Button.A,()->{
+                                firstattempt.set(true);
+                                secondattemp.set(false);
+                                System.out.println("This is the Start of the Player's turn");
+                                api.disableAllButtons();
+                                api.enableButton(Button.A,()->{
+                                    System.out.println("This is the end of the player's turn");
+                                    firstattempt.set(true);
+                                    secondattemp.set(true);
+                                    playerTurn.set(false);
+                                    sleep(1);
+                                });
+                            });
 
                         } else {
                             while (!playerTurn.get()) {
                                 int swiftdiew = (int) (Math.random() * 6) + 1;
 
                                 if (swiftposition + swiftdiew >= 19) {
-                                    int spacesleftS = 25 - swiftposition;
-                                    if (swiftdiew > spacesleftS) {
-                                        System.out.println("Sorry Swift! can't move than 25!  invalid movement!");
+                                        int spacesleftS = 25 - swiftposition;
+                                        if (swiftdiew > spacesleftS) {
+                                            System.out.println("Sorry Swift! can't move than 25!  invalid movement!");
+                                        } else {
+                                            swiftposition += swiftdiew;
+                                        }
                                     } else {
                                         swiftposition += swiftdiew;
                                     }
-                                } else {
-                                    swiftposition += swiftdiew;
-                                }
+
+
                                 System.out.println("This is Swift's turn ");
                                 System.out.println("Forth");
                                 System.out.println("Here is the swiftdiew: " + swiftdiew);
                                 System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
 
-                                Scanner userreply = new Scanner(System.in);
-                                System.out.println("Press next when you want to continue");
-                                String readingline = userreply.nextLine();
+                                while (true) {
+                                    //api.move(80,100,900);
+                                    while (startpos != swiftposition) {
+                                        startpos++;
+                                        System.out.println("Here is my movement: " + startpos);
+                                        api.move(80,100,927);
+                                        sleep(1);
+                                        if (startpos == 5) {
+                                            System.out.println("You have one 1 point");
+                                            api.stopMove();
+                                        }else if ((startpos % 5 == 0) && startpos % 10 != 0) {
+                                            makingaleftcorner();
+                                        } else if (startpos % 10 == 0) {
+                                            makingarightturn();
+                                        }
+                                    }
+                                    System.out.println("Current pos: " + startpos);
+                                    break;
+                                }
+
+                                sleep(3);
                                 playerTurn.set(true);
 
                             }
                         }
-
                         if (playerpostion == 25 && swiftposition != 25) {
                             System.out.println("Player wins!");
                             break;
@@ -255,6 +291,7 @@ public class Main {
                 int swiftposition = 0;
 
                 while (true) {
+                    int startpos=0;
                     while (playerTurn.get()) {
                         while (playerpostion <= 25 && swiftposition <= 25) {
                             if (playerTurn.get()) {
@@ -330,6 +367,7 @@ public class Main {
 
 
                                             } else if (forOrBack.equals("Backwards")) {
+                                                int backwards=-1;
                                                 if (swiftposition - readingline2 >= 19) {
                                                     int spacesleftS = 25 - swiftposition;
                                                     if (swiftdiew > spacesleftS) {
@@ -344,6 +382,25 @@ public class Main {
                                                 System.out.println("Second!");
                                                 System.out.println("Here is the swiftdiew: " + swiftdiew);
                                                 System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
+                                                while (true) {
+                                                    //api.move(80,100,900);
+                                                    while (startpos != swiftposition) {
+                                                        startpos++;
+                                                        System.out.println("Here is my movement: " + startpos);
+                                                        api.move(80*backwards,100*backwards,927);
+                                                        sleep(1);
+                                                        if (startpos == 5) {
+                                                            System.out.println("You have one 1 point");
+                                                            api.stopMove();
+                                                        }else if ((startpos % 5 == 0) && startpos % 10 != 0) {
+                                                            makingaleftcorner();
+                                                        } else if (startpos % 10 == 0) {
+                                                            makingarightturn();
+                                                        }
+                                                    }
+                                                    System.out.println("Current pos: " + startpos);
+                                                    break;
+                                                }
 
                                                 System.out.println("Press next when you want to continue");
                                                 String readingline = userreply.nextLine();
@@ -434,19 +491,6 @@ public class Main {
             throw new RuntimeException(e);
         }
     }
-
-    static void movement(int swiftdiew) {
-        SwiftBotAPI api = SwiftBotAPI.INSTANCE;
-        String[][] SnakesAndLaddersGameBoard =
-                {{" 01 ", " 02 ", " 03 ", " 04 ", " 05 "},
-                        {" 10 ", " 09 ", " 08 ", " 07 ", " 06 "},
-                        {" 11 ", " 12 ", " 13 ", " 14 ", " 15 "},
-                        {" 20 ", " 19 ", " 18 ", " 17 ", " 16 "},
-                        {" 21 ", " 22 ", " 23 ", " 24 ", " 25 "}};
-        String recordedspaceeforswift = SnakesAndLaddersGameBoard[0][0];
-
-    }
-
     static void makingaleftcorner() {
         String[][] SnakesAndLaddersGameBoard =
                 {{" 01 ", " 02 ", " 03 ", " 04 ", " 05 "},
@@ -467,7 +511,6 @@ public class Main {
         sleep(1);
         System.out.println("Moving done");
     }
-
     static void makingarightturn() {
         String[][] SnakesAndLaddersGameBoard =
                 {{" 01 ", " 02 ", " 03 ", " 04 ", " 05 "},
@@ -488,7 +531,6 @@ public class Main {
         sleep(1);
         System.out.println("Moving done");
     }
-
     static void snakes() {
         final int snake = 2;
         int[][] snakes;
@@ -502,8 +544,7 @@ public class Main {
         snakes[0][0] = 17;
         snakes[0][1] = 7;
     }
-
-    static void ladder() {
+    static int ladder() {
         String[][] SnakesAndLaddersGameBoard =
                 {{" 01 ", " 02 ", " 03 ", " 04 ", " 05 "},
                         {" 10 ", " 09 ", " 08 ", " 07 ", " 06 "},
@@ -517,7 +558,6 @@ public class Main {
         ladders[0][0] = 4;
         ladders[0][1] = 14;
     }
-
     static void userfinish() {
         SwiftBotAPI api = SwiftBotAPI.INSTANCE;
         AtomicBoolean playerTurn = new AtomicBoolean(true);
