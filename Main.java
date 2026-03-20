@@ -9,8 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
-
-    public static boolean main(String[] args) {
+    public static void main(String[] args) {
         SwiftBotAPI api = SwiftBotAPI.INSTANCE;
         // this is a boolean that is only turned true when the button is pressed and allows the player to continue the game
         AtomicReference<Boolean> gameStarted = new AtomicReference<>(false);
@@ -43,7 +42,7 @@ public class Main {
 
             if (!gameStarted.get()) continue;
 
-            //ask for the user name
+            //ask for the username
             Scanner userimput = new Scanner(System.in);
             System.out.println("What is your username?");
 //                api.disableButton(Button.Y);
@@ -78,7 +77,7 @@ public class Main {
             String choice = userimput.nextLine();
             String modeselection = choice.toLowerCase();
 
-            int startingpos = 0;
+            int startingpos = 1;
             int newpos = 0;
 
             // all of this code is within mode a and gives the basic rules and games of snakes and ladders
@@ -150,7 +149,24 @@ public class Main {
                             // constantly check if the player position is above 19 as there is a special rule for when the player is
                             if (playerpostion + playerdie >= 19) {
                                 // check for snakes
-                                // check for ladders
+                                int snakes[][] = new int[0][];
+
+                                for (int index = 0; index < snakestart; index++){
+                                    if (snakes[index][0] == swiftposition){
+                                        swiftposition = snakes[index][1];
+                                        System.out.println("Uh oh. " + swiftbotname + " takes snake from " + snakes[index][0] + " to " + snakes[index][1]);
+                                    }
+                                }
+
+                                // check for
+                                int ladders[][] = new int[0][];
+
+                                for (int index = 0; index < ladderstart; index++){
+                                    if (ladders[index][0] == swiftposition){
+                                        swiftposition = ladders[index][1];
+                                        System.out.println("Yay! " + swiftbotname + " takes ladder from " + ladders[index][0] + " to " + ladders[index][1]);
+                                    }
+                                }
                                 // this is a new variable that hold a record of the amount of spaces left for the player to get to 25
                                 int spacesleftP = 25 - playerpostion;
                                 // if the player is above the amount of spaces left,
@@ -179,37 +195,42 @@ public class Main {
                             // button that waits for the user to press when they are done with their turn.
 
                             api.disableAllButtons();
-                            AtomicBoolean firstattempt= new AtomicBoolean(false);
-                            AtomicBoolean secondattemp= new AtomicBoolean(false);
+                            AtomicBoolean firstattempt = new AtomicBoolean(false);
 
-                            api.enableButton(Button.A,()->{
+                            // start of the game
+                            System.out.println("Welcome to Snakes and Ladders");
+                            // the button has to be pressed in order for the game to start
+
+                            api.enableButton(Button.Y, () -> {
+                                System.out.println("Button Y was pressed! Game starting!");
                                 firstattempt.set(true);
-                                secondattemp.set(false);
-                                System.out.println("This is the Start of the Player's turn");
-                                api.disableAllButtons();
-                                api.enableButton(Button.A,()->{
-                                    System.out.println("This is the end of the player's turn");
-                                    firstattempt.set(true);
-                                    secondattemp.set(true);
-                                    playerTurn.set(false);
-                                    sleep(1);
-                                });
+                                for (int i = 1; i <= 3; i++) {
+                                    int[] startofgame = {0, 255, 0};
+                                    api.fillUnderlights(startofgame);
+                                    sleep(0.1);
+                                    api.disableUnderlights();
+                                    sleep(0.1);
+                                }
+
                             });
 
-                        } else {
+                            if (!gameStarted.get()) continue;
+                            playerTurn.set(false);
+                        }
+                        else {
                             while (!playerTurn.get()) {
                                 int swiftdiew = (int) (Math.random() * 6) + 1;
 
                                 if (swiftposition + swiftdiew >= 19) {
-                                        int spacesleftS = 25 - swiftposition;
-                                        if (swiftdiew > spacesleftS) {
-                                            System.out.println("Sorry Swift! can't move than 25!  invalid movement!");
-                                        } else {
-                                            swiftposition += swiftdiew;
-                                        }
+                                    int spacesleftS = 25 - swiftposition;
+                                    if (swiftdiew > spacesleftS) {
+                                        System.out.println("Sorry Swift! can't move than 25!  invalid movement!");
                                     } else {
                                         swiftposition += swiftdiew;
                                     }
+                                } else {
+                                    swiftposition += swiftdiew;
+                                }
 
 
                                 System.out.println("This is Swift's turn ");
@@ -221,35 +242,37 @@ public class Main {
                                     while (startpos != swiftposition) {
                                         startpos++;
                                         System.out.println("Here is my movement: " + startpos);
-                                        api.move(80,100,927);
+                                        api.move(80, 100, 927);
                                         sleep(1);
                                         if (startpos == 5) {
                                             System.out.println("You have one 1 point");
                                             api.stopMove();
                                             System.out.println("Do you want to quit?");
-                                            String quest=userimput.nextLine();
-                                            AtomicBoolean quitornah= new AtomicBoolean(false);
-                                            api.enableButton(Button.B,()->{
+                                            String quest = userimput.nextLine();
+                                            AtomicBoolean quitornah = new AtomicBoolean(false);
+                                            api.enableButton(Button.B, () -> {
                                                 quitornah.set(true);
                                                 System.out.println("Yes? Okay, well see you next time!");
                                                 LocalDate recordedspace = LocalDate.now();
                                                 System.out.println(recordedspace);
                                             });
+                                            while (quitornah.get()) {
                                                 System.exit(0);
+                                            }
+                                        }else if ((startpos % 5 == 0) && startpos % 10 != 0) {
+                                                makingaleftcorner();
+                                            } else if (startpos % 10 == 0) {
+                                                makingarightturn();
+                                            }
                                         }
-                                    else if ((startpos % 5 == 0) && startpos % 10 != 0) {
-                                            makingaleftcorner();
-                                        } else if (startpos % 10 == 0) {
-                                            makingarightturn();
-                                        }
+                                        System.out.println("Current pos: " + startpos);
+                                        break;
                                     }
-                                    System.out.println("Current pos: " + startpos);
-                                    break;
+
+                                    sleep(3);
+                                    playerTurn.set(true);
+
                                 }
-
-                                sleep(3);
-                                playerTurn.set(true);
-
                             }
                         }
                         if (playerpostion == 25 && swiftposition != 25) {
@@ -262,7 +285,6 @@ public class Main {
                         break;
                     }
                 }
-            }
             else if (modeselection.equals("mode b")) {
                 System.out.println("You have chosen Mode B. Welcome to Snakes and Ladders");
                 sleep((int) 0.5);
@@ -377,8 +399,37 @@ public class Main {
                                                 System.out.println("Here is the swiftdiew: " + swiftdiew);
                                                 System.out.println("Here is the New Space for the SwiftBot: " + newsiftpos);
 
-                                                System.out.println("Press next when you want to continue");
-                                                String readingline = userreply.nextLine();
+                                                while (true) {
+                                                    //api.move(80,100,900);
+                                                    while (startpos != swiftposition) {
+                                                        startpos++;
+                                                        System.out.println("Here is my movement: " + startpos);
+                                                        api.move(80, 100, 927);
+                                                        sleep(1);
+                                                        if (startpos == 5) {
+                                                            System.out.println("You have one 1 point");
+                                                            api.stopMove();
+                                                            System.out.println("Do you want to quit?");
+                                                            String quest = userimput.nextLine();
+                                                            AtomicBoolean quitornah = new AtomicBoolean(false);
+                                                            api.enableButton(Button.B, () -> {
+                                                                quitornah.set(true);
+                                                                System.out.println("Yes? Okay, well see you next time!");
+                                                                LocalDate recordedspace = LocalDate.now();
+                                                                System.out.println(recordedspace);
+                                                            });
+                                                            while (quitornah.get()) {
+                                                                System.exit(0);
+                                                            }
+                                                        }else if ((startpos % 5 == 0) && startpos % 10 != 0) {
+                                                            makingaleftcorner();
+                                                        } else if (startpos % 10 == 0) {
+                                                            makingarightturn();
+                                                        }
+                                                    }
+                                                    System.out.println("Current pos: " + startpos);
+                                                    break;
+                                                }
 
 
                                             } else if (forOrBack.equals("Backwards")) {
@@ -441,8 +492,37 @@ public class Main {
                                         System.out.println("Here is the swiftdiew: " + swiftdiew);
                                         System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
 
-                                        System.out.println("Press next when you want to continue");
-                                        String readingline = userreply.nextLine();
+                                        while (true) {
+                                            //api.move(80,100,900);
+                                            while (startpos != swiftposition) {
+                                                startpos++;
+                                                System.out.println("Here is my movement: " + startpos);
+                                                api.move(80, 100, 927);
+                                                sleep(1);
+                                                if (startpos == 5) {
+                                                    System.out.println("You have one 1 point");
+                                                    api.stopMove();
+                                                    System.out.println("Do you want to quit?");
+                                                    String quest = userimput.nextLine();
+                                                    AtomicBoolean quitornah = new AtomicBoolean(false);
+                                                    api.enableButton(Button.B, () -> {
+                                                        quitornah.set(true);
+                                                        System.out.println("Yes? Okay, well see you next time!");
+                                                        LocalDate recordedspace = LocalDate.now();
+                                                        System.out.println(recordedspace);
+                                                    });
+                                                    while (quitornah.get()) {
+                                                        System.exit(0);
+                                                    }
+                                                }else if ((startpos % 5 == 0) && startpos % 10 != 0) {
+                                                    makingaleftcorner();
+                                                } else if (startpos % 10 == 0) {
+                                                    makingarightturn();
+                                                }
+                                            }
+                                            System.out.println("Current pos: " + startpos);
+                                            break;
+                                        }
                                         playerTurn.set(true);
 
                                         if (playerpostion == 25 && swiftposition != 25) {
@@ -462,7 +542,6 @@ public class Main {
                                             if (snakes[index][0] == swiftposition){
                                                 swiftposition = snakes[index][1];
                                                 System.out.println("Uh oh. " + swiftbotname + " takes snake from " + snakes[index][0] + " to " + snakes[index][1]);
-                                                return false;
                                             }
                                         }
 
@@ -472,7 +551,6 @@ public class Main {
                                             if (ladders[index][0] == swiftposition){
                                                 swiftposition = ladders[index][1];
                                                 System.out.println("Yay! " + swiftbotname + " takes ladder from " + ladders[index][0] + " to " + ladders[index][1]);
-                                                return false;
                                             }
                                         }
 
@@ -490,8 +568,37 @@ public class Main {
                                         System.out.println("Here is the swiftdiew: " + swiftdiew);
                                         System.out.println("Here is the New Space for the SwiftBot: " + swiftposition);
 
-                                        System.out.println("Press next when you want to continue");
-                                        String readingline = userreply.nextLine();
+                                        while (true) {
+                                            //api.move(80,100,900);
+                                            while (startpos != swiftposition) {
+                                                startpos++;
+                                                System.out.println("Here is my movement: " + startpos);
+                                                api.move(80, 100, 927);
+                                                sleep(1);
+                                                if (startpos == 5) {
+                                                    System.out.println("You have one 1 point");
+                                                    api.stopMove();
+                                                    System.out.println("Do you want to quit?");
+                                                    String quest = userimput.nextLine();
+                                                    AtomicBoolean quitornah = new AtomicBoolean(false);
+                                                    api.enableButton(Button.B, () -> {
+                                                        quitornah.set(true);
+                                                        System.out.println("Yes? Okay, well see you next time!");
+                                                        LocalDate recordedspace = LocalDate.now();
+                                                        System.out.println(recordedspace);
+                                                    });
+                                                    while (quitornah.get()) {
+                                                        System.exit(0);
+                                                    }
+                                                }else if ((startpos % 5 == 0) && startpos % 10 != 0) {
+                                                    makingaleftcorner();
+                                                } else if (startpos % 10 == 0) {
+                                                    makingarightturn();
+                                                }
+                                            }
+                                            System.out.println("Current pos: " + startpos);
+                                            break;
+                                        }
                                         playerTurn.set(true);
 
                                     }
@@ -512,7 +619,6 @@ public class Main {
             }
         }
     }
-
 
     static double sleep(double n) {
         try {
